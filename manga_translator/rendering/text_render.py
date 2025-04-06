@@ -649,20 +649,15 @@ def calc_horizontal(font_size: int, text: str, max_width: int, max_height: int, 
 
 
 def put_char_horizontal(font_size: int, cdpt: str, pen_l: Tuple[int, int], canvas_text: np.ndarray, canvas_border: np.ndarray, border_size: int):
-    pen = list(pen_l) # pen_l is a tuple, which is immutable.
-                        # We need to convert it to list to allow modification
+    pen = pen_l.copy()
 
     cdpt, rot_degree = CJK_Compatibility_Forms_translate(cdpt, 0)
     slot = get_char_glyph(cdpt, font_size, 0)
     bitmap = slot.bitmap
     char_offset_x = slot.advance.x >> 6
-    try:
-        bitmap_char = np.array(bitmap.buffer, dtype = np.uint8).reshape((bitmap.rows,bitmap.width))
-    except ValueError as e:
-        if bitmap.rows * bitmap.width == 0 or len(bitmap.buffer) != bitmap.rows * bitmap.width:
-            return char_offset_x
-        else:
-            raise e
+    bitmap_char = np.array(bitmap.buffer, dtype = np.uint8).reshape((bitmap.rows,bitmap.width))
+    if bitmap.rows * bitmap.width == 0 or len(bitmap.buffer) != bitmap.rows * bitmap.width:
+        return char_offset_x
     pen[0] += slot.bitmap_left
     pen[1] = max(pen[1] - slot.bitmap_top, 0)
     canvas_text[pen[1]:pen[1]+bitmap.rows, pen[0]:pen[0]+bitmap.width] = bitmap_char
