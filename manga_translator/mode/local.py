@@ -100,7 +100,7 @@ class MangaTranslatorLocal(MangaTranslator):
             semaphore = asyncio.Semaphore(concurrency)
             lock = asyncio.Lock()
 
-            async def translate_single_file(image_file):
+            async def translate_single_file(root, image_file):
                 nonlocal translated_count
                 async with semaphore:
                     if image_file.lower() == '.thumb':
@@ -124,7 +124,7 @@ class MangaTranslatorLocal(MangaTranslator):
                 dest_root = replace_prefix(root, path, dest_translated_dir)
                 os.makedirs(dest_root, exist_ok=True)
                 for image_file in files:
-                    tasks.append(translate_single_file(image_file))
+                    tasks.append(translate_single_file(root, image_file))
                     # Build and run tasks in several batches, to avoid out of memory if there are too much files
                     if len(tasks) >= 10 * concurrency:
                         await asyncio.gather(*tasks)
